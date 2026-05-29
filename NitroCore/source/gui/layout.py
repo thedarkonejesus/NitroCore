@@ -1,37 +1,66 @@
-"""Layout manager for organizing widgets"""
+"""
+Advanced Layout Manager utility for assembling responsive widget matrices.
+Handles clean underlying object unwrapping for custom compound UI widgets.
+"""
 
 import tkinter as tk
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Tuple, Union, Any
 
 
 class LayoutManager:
-    """Layout manager for organizing widgets in different layouts"""
+    """
+    High-performance layout manager engine built for NitroCore.
+    Safely interfaces with custom high-end UI elements or native Tkinter components.
+    """
     
     @staticmethod
-    def vertical_stack(widgets: List[tk.Widget], spacing: int = 5) -> None:
-        """Stack widgets vertically with spacing"""
-        for widget in widgets:
-            widget.pack(fill=tk.X, padx=10, pady=spacing)
+    def _unwrap_element(element: Any) -> tk.Widget:
+        """
+        Internal safety helper to extract raw underlying Tkinter components.
+        Enables seamless support for both standard widgets and custom UI classes.
+        """
+        # Checks if it's one of our wrapped classes (which store the raw widget in self.widget)
+        if hasattr(element, 'widget') and isinstance(element.widget, tk.Widget):
+            return element.widget
+        elif isinstance(element, tk.Widget):
+            return element
+        else:
+            raise TypeError(f"Unsupported layout element type passed to manager: {type(element)}")
+
+    @classmethod
+    def vertical_stack(cls, elements: List[Any], spacing: int = 5) -> None:
+        """Stacks elements vertically, stretching them horizontally to match parent width."""
+        for element in elements:
+            raw_widget = cls._unwrap_element(element)
+            raw_widget.pack(fill=tk.X, padx=10, pady=spacing)
     
-    @staticmethod
-    def horizontal_stack(widgets: List[tk.Widget], spacing: int = 5) -> None:
-        """Stack widgets horizontally with spacing"""
-        for widget in widgets:
-            widget.pack(side=tk.LEFT, padx=spacing)
+    @classmethod
+    def horizontal_stack(cls, elements: List[Any], spacing: int = 5) -> None:
+        """Stacks elements horizontally in a tight row format."""
+        for element in elements:
+            raw_widget = cls._unwrap_element(element)
+            raw_widget.pack(side=tk.LEFT, padx=spacing, pady=spacing)
     
-    @staticmethod
+    @classmethod
     def grid_layout(
-        widgets: List[tk.Widget],
-        rows: int,
+        cls,
+        elements: List[Any],
         cols: int,
         spacing: Tuple[int, int] = (5, 5),
-        sticky: str = 'ew'
+        sticky: str = 'nsew' # Default to fill all four quadrant anchor limits
     ) -> None:
-        """Arrange widgets in a grid"""
-        for i, widget in enumerate(widgets):
+        """Arranges elements cleanly inside a uniform dimensional grid."""
+        for i, element in enumerate(elements):
+            raw_widget = cls._unwrap_element(element)
             row = i // cols
             col = i % cols
-            widget.grid(
+            
+            # Configure parenting container metrics automatically to ensure grid spaces match
+            parent = raw_widget.master
+            parent.columnconfigure(col, weight=1)
+            parent.rowconfigure(row, weight=1)
+            
+            raw_widget.grid(
                 row=row,
                 column=col,
                 padx=spacing[0],
@@ -39,39 +68,31 @@ class LayoutManager:
                 sticky=sticky
             )
     
-    @staticmethod
-    def form_layout(widgets: List[Tuple[str, tk.Widget]], spacing: int = 10) -> None:
-        """Create form layout with labels and controls"""
-        for i, (label_text, control) in enumerate(widgets):
-            label = tk.Label(control.master, text=label_text)
-            label.grid(row=i, column=0, sticky='w', padx=spacing, pady=spacing//2)
-            control.grid(row=i, column=1, sticky='ew', padx=spacing, pady=spacing//2)
-    
-    @staticmethod
-    def responsive_grid(
-        widgets: List[tk.Widget],
-        min_width: int = 300,
-        max_columns: int = 4
-    ) -> None:
-        """Create responsive grid layout"""
-        parent = widgets[0].master
-        parent.columnconfigure(0, weight=1)
+    @classmethod
+    def form_layout(cls, fields: List[Tuple[str, Any]], spacing: int = 10) -> None:
+        """
+        Builds sleek double-column standard configurations.
+        Exposes left-aligned descriptive tags mirrored beside active entry elements.
+        """
+        # Import dynamically here to avoid circular dependencies during initialization
+        from .label import CustomLabel
         
-        row = 0
-        col = 0
-        
-        for widget in widgets:
-            widget.grid(
-                row=row,
-                column=col,
-                sticky='ew',
-                padx=5,
-                pady=5
+        for i, (label_text, control_element) in enumerate(fields):
+            raw_control = cls._unwrap_element(control_element)
+            parent = raw_control.master
+            
+            # Automatically assign column sizing weights to the master frame canvas
+            parent.columnconfigure(1, weight=3) # Let entry input fields dominate empty space
+            
+            # Instantiate our custom dark-themed text components cleanly
+            lbl = CustomLabel(
+                parent=parent, 
+                text=label_text, 
+                font=("Segoe UI", 10, "bold"),
+                fg_color="#B9BBBE", # Secondary dark theme text coloration profile
+                bg_color=parent.cget("bg") # Inherit background color dynamically
             )
             
-            col += 1
-            if col >= max_columns:
-                col = 0
-                row += 1
-                
-            parent.rowconfigure(row, weight=1)
+            # Draw components side by side using unified grid indexing metrics
+            lbl.grid(row=i, column=0, sticky='w', padx=spacing, pady=spacing // 2)
+            raw_control.grid(row=i, column=1, sticky='ew', padx=spacing, pady=spacing // 2)
