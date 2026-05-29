@@ -1,51 +1,73 @@
-"""Label class for displaying text"""
+"""
+Custom Label component featuring multi-line auto-wrap and thread-safe text styling.
+Optimized to handle dynamic status updates and long file path logs cleanly.
+"""
 
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 
-class Label:
-    """Label widget for displaying text"""
+class CustomLabel:
+    """
+    High-performance flat text display component built for NitroCore.
+    Supports smart independent color updates and fluid layout text wrapping.
+    """
     
     def __init__(
         self,
         parent: tk.Widget,
         text: str,
-        font: Optional[tuple] = None,
-        fg: Optional[str] = None,
-        bg: Optional[str] = None,
-        anchor: Optional[str] = None
+        font: Tuple[str, int, str] = ("Segoe UI", 10, "normal"),
+        fg_color: str = "#F2F3F5",       # Crisp white/slate text for readability
+        bg_color: str = "#2F3136",       # Matches our main panel color
+        anchor: str = "w",                # Default align to West (left-aligned) for clean text tracking
+        wrap_length: int = 0             # 0 means disabled. Pass a pixel value (e.g., 400) to auto-wrap long text
     ):
-        """Initialize label"""
-        self.label = tk.Label(
+        """Initialize label properties and set up anti-aliasing defaults."""
+        self.parent = parent
+        self.text = text
+
+        # Core element initialization using modern typography presets
+        self.widget = tk.Label(
             parent,
             text=text,
             font=font,
-            fg=fg,
-            bg=bg,
-            anchor=anchor
+            fg=fg_color,
+            bg=bg_color,
+            anchor=anchor,
+            justify="left",              # Left-justify multi-line block text
+            wraplength=wrap_length
         )
-        
-        # Store properties
-        self.text = text
-    
+
     def pack(self, **kwargs) -> None:
-        """Pack label into parent"""
-        self.label.pack(**kwargs)
-    
+        """Expose layout pack control."""
+        self.widget.pack(**kwargs)
+
     def grid(self, row: int, column: int, **kwargs) -> None:
-        """Grid label into parent"""
-        self.label.grid(row=row, column=column, **kwargs)
-    
+        """Expose layout grid structure control."""
+        self.widget.grid(row=row, column=column, **kwargs)
+
+    def place(self, **kwargs) -> None:
+        """Expose relative or exact pixel coordinates mapping control."""
+        self.widget.place(**kwargs)
+
     def set_text(self, text: str) -> None:
-        """Set label text"""
+        """Updates display text smoothly across running dashboard loops."""
         self.text = text
-        self.label.config(text=text)
-    
-    def set_font(self, font: tuple) -> None:
-        """Set label font"""
-        self.label.config(font=font)
-    
-    def set_color(self, fg: str, bg: str) -> None:
-        """Set label colors"""
-        self.label.config(fg=fg, bg=bg)
+        self.widget.config(text=text)
+
+    def set_font(self, font: Tuple[str, int, str]) -> None:
+        """Dynamically re-scales typography sizing parameters."""
+        self.widget.config(font=font)
+
+    def set_foreground(self, fg_color: str) -> None:
+        """Independently shifts text color (perfect for green/red/orange status indicators)."""
+        self.widget.config(fg=fg_color)
+
+    def set_background(self, bg_color: str) -> None:
+        """Independently alters background panel matching canvas values."""
+        self.widget.config(bg=bg_color)
+
+    def set_wrap_length(self, pixels: int) -> None:
+        """Adjusts the wrap constraint pixel threshold dynamically if the window resizes."""
+        self.widget.config(wraplength=pixels)
