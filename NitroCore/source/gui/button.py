@@ -1,7 +1,7 @@
 """
 Custom UI Flat Button Component for NitroCore.
 Handles drawing custom shapes, states, text layout positioning, 
-and smooth mouse hover interaction sequences safely.
+and smooth mouse hover interaction sequences safely with perfect indentation.
 """
 
 import tkinter as tk
@@ -46,7 +46,7 @@ class CustomButton:
         )
         self.label.pack(expand=True, fill="both", padx=10, pady=5)
 
-        # Bind Win32 interaction listener signals properly closing all parameters
+        # Bind Win32 interaction listener signals properly
         self.canvas.bind("<Enter>", self._on_mouse_enter)
         self.canvas.bind("<Leave>", self._on_mouse_leave)
         self.canvas.bind("<Button-1>", self._on_mouse_click)
@@ -73,9 +73,6 @@ class CustomButton:
             self.hover_foreground = kwargs["activeforeground"]
         if "bd" in kwargs:
             self.canvas.configure(highlightthickness=kwargs["bd"])
-        if "relief" in kwargs:
-            # Reconfigure color borders for flat solid retro layouts
-            pass
 
     def _on_mouse_enter(self, event: Optional[tk.Event] = None) -> None:
         """Swaps palette profiles to accent states on cursor enter."""
@@ -94,3 +91,4 @@ class CustomButton:
     def _on_mouse_click(self, event: Optional[tk.Event] = None) -> None:
         """Interceptors button down clicks to trigger associated callbacks."""
         if not self.is_disabled and self.command:
+            self.command()
