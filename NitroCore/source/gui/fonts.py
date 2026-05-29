@@ -1,30 +1,26 @@
-"""
-Hardware-accelerated font schema manager for NitroCore graphical layers.
-"""
-
-import tkinter as tk
+"""Hardware-accelerated typography profile manager for NitroCore graphics."""
 import tkinter.font as tkfont
 from typing import Dict
+from src.utils.config import Config
 
 class FontEngine:
-    """Initializes and caches hardware-rendered font sheets for the application."""
-    
     _registry: Dict[str, tkfont.Font] = {}
 
     @classmethod
     def initialize(cls) -> None:
-        """Compiles font patterns directly into the active Tkinter window engine context."""
+        """Compiles font strings directly into the active Tkinter rendering layer."""
         if cls._registry:
-            return  # Already initialized
+            cls._registry.clear()
 
-        # Base Segoe UI configurations optimized for high-DPI Windows displays
-        cls._registry["title"] = tkfont.Font(family="Segoe UI", size=16, weight="bold")
-        cls._registry["header"] = tkfont.Font(family="Segoe UI", size=12, weight="bold")
-        cls._registry["body"] = tkfont.Font(family="Segoe UI", size=10, weight="normal")
-        cls._registry["button"] = tkfont.Font(family="Segoe UI", size=10, weight="bold")
+        # Enforce monospaced gaming fonts if Easter Egg is active
+        family = "Consolas" if Config.PI_BOY_MODE else "Segoe UI"
+
+        cls._registry["title"] = tkfont.Font(family=family, size=15, weight="bold")
+        cls._registry["header"] = tkfont.Font(family=family, size=11, weight="bold")
+        cls._registry["body"] = tkfont.Font(family=family, size=10, weight="normal")
+        cls._registry["button"] = tkfont.Font(family=family, size=11, weight="bold")
         cls._registry["log"] = tkfont.Font(family="Consolas", size=9, weight="normal")
 
     @classmethod
     def get(cls, style_name: str) -> tkfont.Font:
-        """Fetches a pre-compiled font profile by name."""
         return cls._registry.get(style_name, ("Segoe UI", 10, "normal"))
