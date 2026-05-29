@@ -1,93 +1,96 @@
 """
-Custom Button component featuring hover feedback loops and flat theme integrations.
-Optimized to deliver smooth UI interactions matching modern system aesthetics.
+Custom UI Flat Button Component for NitroCore.
+Handles drawing custom shapes, states, text layout positioning, 
+and smooth mouse hover interaction sequences safely.
 """
 
 import tkinter as tk
-from tkinter import ttk
-from typing import Callable, Optional, Union, Tuple
-
+from typing import Callable, Optional
 
 class CustomButton:
-    """
-    High-performance flat-styled button component with native hover transitions 
-    and unified styling defaults built for NitroCore.
-    """
-    
+    """A highly responsive, custom-styled flat GUI canvas button."""
+
     def __init__(
         self,
         parent: tk.Widget,
         text: str,
-        command: Optional[Callable] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
-        bg_color: str = "#2A2D32",       # Sleek charcoal/slate default
-        fg_color: str = "#FFFFFF",       # High-contrast white text
-        hover_color: str = "#40444B",    # Lightened highlight state
-        font: Tuple[str, int, str] = ("Segoe UI", 10, "normal")
+        command: Callable,
+        font: tk.font.Font,
+        bg: str = "#2F3136",
+        fg: str = "#F2F3F5",
+        activebackground: str = "#40444B",
+        activeforeground: str = "#FFFFFF"
     ):
-        """Initialize customized widget properties with responsive state trackers."""
-        self.parent = parent
-        self.text = text
         self.command = command
-        
-        # Color profile configurations
-        self.bg_color = bg_color
-        self.fg_color = fg_color
-        self.hover_color = hover_color
-        self.is_enabled = True
+        self.normal_background = bg
+        self.normal_foreground = fg
+        self.hover_background = activebackground
+        self.hover_foreground = activeforeground
+        self.is_disabled = False
 
-        # Initialize underlying element using flat styling parameters
-        self.widget = tk.Button(
+        # Create localized execution base drawing canvas
+        self.canvas = tk.Canvas(
             parent,
-            text=text,
-            command=command,
-            width=width,
-            height=height,
-            bg=self.bg_color,
-            fg=self.fg_color,
-            font=font,
-            activebackground=self.hover_color,
-            activeforeground=self.fg_color,
-            relief="flat",               # Removes the dated 90s border layout
-            bd=0,                        # Zeroes out legacy borders
-            cursor="hand2"               # Changes cursor to interactive pointer
+            bg=self.normal_background,
+            highlightthickness=0,
+            cursor="hand2"
         )
         
-        # Bind micro-interaction event routines for seamless UX response
-        self.widget.bind("<Enter>", self._on_mouse_enter)
-        self.widget.bind("<Leave>", self._on_mouse_leave)
+        # Draw explicit centered interface layout label
+        self.label = tk.Label(
+            self.canvas,
+            text=text,
+            font=font,
+            bg=self.normal_background,
+            fg=self.normal_foreground
+        )
+        self.label.pack(expand=True, fill="both", padx=10, pady=5)
+
+        # Bind Win32 interaction listener signals properly closing all parameters
+        self.canvas.bind("<Enter>", self._on_mouse_enter)
+        self.canvas.bind("<Leave>", self._on_mouse_leave)
+        self.canvas.bind("<Button-1>", self._on_mouse_click)
+        self.label.bind("<Enter>", self._on_mouse_enter)
+        self.label.bind("<Leave>", self._on_mouse_leave)
+        self.label.bind("<Button-1>", self._on_mouse_click)
 
     def pack(self, **kwargs) -> None:
-        """Expose layout pack control."""
-        self.widget.pack(**kwargs)
+        """Exposes standard Tkinter layout grid packing boundaries."""
+        self.canvas.pack(**kwargs)
 
-    def grid(self, row: int, column: int, **kwargs) -> None:
-        """Expose layout grid structure control."""
-        self.widget.grid(row=row, column=column, **kwargs)
+    def configure(self, **kwargs) -> None:
+        """Allows runtime palette property updates (like our Pip-Boy transformation)."""
+        if "bg" in kwargs:
+            self.normal_background = kwargs["bg"]
+            self.canvas.configure(bg=kwargs["bg"])
+            self.label.configure(bg=kwargs["bg"])
+        if "fg" in kwargs:
+            self.normal_foreground = kwargs["fg"]
+            self.label.configure(fg=kwargs["fg"])
+        if "activebackground" in kwargs:
+            self.hover_background = kwargs["activebackground"]
+        if "activeforeground" in kwargs:
+            self.hover_foreground = kwargs["activeforeground"]
+        if "bd" in kwargs:
+            self.canvas.configure(highlightthickness=kwargs["bd"])
+        if "relief" in kwargs:
+            # Reconfigure color borders for flat solid retro layouts
+            pass
 
-    def place(self, **kwargs) -> None:
-        """Expose precise pixel positioning control."""
-        self.widget.place(**kwargs)
+    def _on_mouse_enter(self, event: Optional[tk.Event] = None) -> None:
+        """Swaps palette profiles to accent states on cursor enter."""
+        if not self.is_disabled:
+            self.canvas.configure(bg=self.hover_background)
+            self.label.configure(bg=self.hover_background)
+            self.label.configure(fg=self.hover_foreground)
 
-    def set_command(self, command: Callable) -> None:
-        """Update click routine target dynamically."""
-        self.command = command
-        self.widget.config(command=command)
+    def _on_mouse_leave(self, event: Optional[tk.Event] = None) -> None:
+        """Restores original background balances on cursor leave."""
+        if not self.is_disabled:
+            self.canvas.configure(bg=self.normal_background)
+            self.label.configure(bg=self.normal_background)
+            self.label.configure(fg=self.normal_foreground)
 
-    def enable(self) -> None:
-        """Re-activate interaction pathways and reset default background shades."""
-        self.is_enabled = True
-        self.widget.config(state="normal", bg=self.bg_color, cursor="hand2")
-
-    def disable(self) -> None:
-        """Freeze interactions and apply modern muted gray indicators."""
-        self.is_enabled = False
-        self.widget.config(state="disabled", bg="#1E1F22", fg="#5865F2", cursor="arrow")
-
-    def set_text(self, text: str) -> None:
-        """Update label value string data smoothly."""
-        self.text = text
-        self.widget.config(text=text)
-
-    def _on_mouse_enter(
+    def _on_mouse_click(self, event: Optional[tk.Event] = None) -> None:
+        """Interceptors button down clicks to trigger associated callbacks."""
+        if not self.is_disabled and self.command:
