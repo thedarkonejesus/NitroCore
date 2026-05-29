@@ -1,43 +1,67 @@
-"""Frame class for grouping widgets"""
+"""
+Custom Frame component acting as an isolated layout layout container panel.
+Optimized to provide strict layout nesting boundaries without UI manager locking loops.
+"""
 
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 
-class Frame:
-    """Frame container for grouping widgets"""
+class CustomFrame:
+    """
+    High-performance flat layout container panel built for NitroCore.
+    Exposes explicit parent mapping properties to allow child widgets 
+    to choose their layout manager freely.
+    """
     
     def __init__(
         self,
         parent: tk.Widget,
-        bg: Optional[str] = None,
-        borderwidth: Optional[int] = None,
-        relief: Optional[str] = None
+        bg_color: str = "#2F3136",      # Discord-style deep panel background
+        borderwidth: int = 0,            # Zeroed out border by default for smooth panels
+        relief: str = "flat"            # Flat uniform visual layer design
     ):
-        """Initialize frame"""
-        self.frame = tk.Frame(
+        """Initialize backend canvas layout panel containers."""
+        self.bg_color = bg_color
+        
+        # Core underlying widget initialization
+        self.widget = tk.Frame(
             parent,
-            bg=bg,
+            bg=self.bg_color,
             borderwidth=borderwidth,
             relief=relief
         )
-        
-        # Store properties
-        self.bg = bg
-    
+
+    @property
+    def canvas(self) -> tk.Frame:
+        """
+        The critical structural accessor property.
+        Pass this object as the 'parent' argument when creating child components.
+        Example: CustomButton(my_frame.canvas, text="Run Optimizer")
+        """
+        return self.widget
+
     def pack(self, **kwargs) -> None:
-        """Pack frame into parent"""
-        self.frame.pack(**kwargs)
-    
+        """Expose flexible container layout pack layout control."""
+        self.widget.pack(**kwargs)
+
     def grid(self, row: int, column: int, **kwargs) -> None:
-        """Grid frame into parent"""
-        self.frame.grid(row=row, column=column, **kwargs)
-    
+        """Expose container grid array alignment control."""
+        self.widget.grid(row=row, column=column, **kwargs)
+
+    def place(self, **kwargs) -> None:
+        """Expose precise relative or pixel coordinates mapping controls."""
+        self.widget.place(**kwargs)
+
     def set_background(self, color: str) -> None:
-        """Set frame background color"""
-        self.bg = color
-        self.frame.config(bg=color)
-    
-    def add_widget(self, widget: tk.Widget) -> None:
-        """Add widget to frame"""
-        widget.pack(in_=self.frame)
+        """Updates the panel background theme color signature smoothly across components."""
+        self.bg_color = color
+        self.widget.config(bg=color)
+
+    def clear_content(self) -> None:
+        """
+        Safely purges and destroys all child widgets inside this frame canvas.
+        Essential for clearing out UI cards dynamically without memory resource retention.
+        """
+        for child in self.widget.winfo_children():
+            child.destroy()
