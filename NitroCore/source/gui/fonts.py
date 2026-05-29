@@ -1,7 +1,9 @@
 """Hardware-accelerated typography profile manager for NitroCore graphics."""
 import tkinter.font as tkfont
 from typing import Dict
-from src.utils.config import Config
+
+# UPDATED IMPORT: Pointing to 'source' instead of 'src'
+from source.utils.config import Config
 
 class FontEngine:
     _registry: Dict[str, tkfont.Font] = {}
@@ -12,7 +14,6 @@ class FontEngine:
         if cls._registry:
             cls._registry.clear()
 
-        # Enforce monospaced gaming fonts if Easter Egg is active
         family = "Consolas" if Config.PI_BOY_MODE else "Segoe UI"
 
         cls._registry["title"] = tkfont.Font(family=family, size=15, weight="bold")
