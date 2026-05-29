@@ -1,18 +1,12 @@
-# Core dependencies for NitroCore - Windows Optimizer
+# ====================================================================
+# NitroCore Windows System Optimizer - Production Runtime Dependencies
+# ====================================================================
 
-# Development tools
-setuptools>=65.0.0
-wheel>=0.38.0
-twine>=4.0.0
-pytest>=7.0.0
-pytest-cov>=4.0.0
-coverage>=6.5.0
-black>=22.10.0
-flake8>=5.0.0
+# Low-level Windows API interaction extensions
+pywin32>=306
 
-# Runtime dependencies
-pyyaml>=6.0.0
-psutil>=5.8.0
-pywin32>=300
-types-setuptools>=65.0.0
-types-pyyaml>=6.0.0
+# Process metrics, memory telemetry, and CPU prioritization tracking
+psutil>=5.9.0
+
+# Multi-format configuration parsing (JSON/YAML)
+pyyaml>=6.0.1
